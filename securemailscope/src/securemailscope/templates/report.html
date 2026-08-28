@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SecureMailScope report</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  {% set cls = {'CRITICAL':'crit','HIGH':'high','MEDIUM':'med','LOW':'low','SECURE':'secure'} %}
+  <div class="topbar">
+    <span class="name">SecureMailScope</span>
+    <span class="tag">Email TLS posture from packet captures</span>
+  </div>
+
+  <div class="container">
+    <div class="panel">
+      <div class="report-head">
+        <h2>Report</h2>
+        <span class="src">{{ report.source }} &middot; {{ report.session_count }} session(s)</span>
+      </div>
+
+      <div class="tiles">
+        <div class="tile crit"><div class="n">{{ report.summary.CRITICAL }}</div><div class="l">Critical</div></div>
+        <div class="tile high"><div class="n">{{ report.summary.HIGH }}</div><div class="l">High</div></div>
+        <div class="tile med"><div class="n">{{ report.summary.MEDIUM }}</div><div class="l">Medium</div></div>
+        <div class="tile low"><div class="n">{{ report.summary.LOW }}</div><div class="l">Low</div></div>
+        <div class="tile secure"><div class="n">{{ report.summary.SECURE }}</div><div class="l">Secure</div></div>
+      </div>
+      <a class="back btn secondary" href="/">Scan another capture</a>
+    </div>
+
+    {% for s in report.sessions %}
+    <div class="session">
+      <div class="row">
+        <span class="badge {{ cls[s.severity] }}">{{ s.severity }}</span>
+        <span class="meta"><b>{{ s.protocol }}</b> {{ s.server }}</span>
+        <span class="meta">{{ s.encryption_state }}</span>
+        {% if s.tls %}<span class="meta mono">{{ s.tls.version }}</span>{% endif %}
+      </div>
+      <div class="details">
+        <div class="kv">
+          <div><span>Client</span> <b>{{ s.client }}</b></div>
+          {% if s.tls %}
+          <div><span>Cipher</span> <b>{{ s.tls.cipher }}</b></div>
+          <div><span>Forward secrecy</span> <b>{{ 'yes' if s.tls.forward_secrecy else 'no' }}</b></div>
+          {% endif %}
+          {% if s.certificate %}
+          <div><span>Certificate</span> <b>{{ s.certificate.subject }}</b></div>
+          <div><span>Key</span> <b>{{ s.certificate.key }}</b></div>
+          <div><span>Valid to</span> <b>{{ s.certificate.valid_to }}</b></div>
+          {% endif %}
+        </div>
+
+        {% if s.findings %}
+          {% for f in s.findings %}
+          <div class="finding {{ cls[f.severity] }}">
+            <div class="ftitle">[{{ f.severity }}] {{ f.title }}</div>
+            <div class="fdetail">{{ f.detail }}</div>
+            <div class="ffix"><b>Fix:</b> {{ f.remediation }}</div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="clean">No cryptographic weaknesses found. Modern TLS, strong cipher, valid certificate.</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

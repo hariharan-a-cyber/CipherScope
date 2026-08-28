@@ -1,0 +1,44 @@
+# Check catalog for SecureMailScope.
+# Each entry defines the severity and remediation text for a finding code.
+# The detection logic lives in src/securemailscope/rules.py; this file lets you
+# tune severity and wording without touching code.
+
+NO_ENCRYPTION:
+  severity: CRITICAL
+  title: Session ran in cleartext
+  remediation: Require TLS for this service. Disable plaintext logins and enforce implicit TLS or mandatory STARTTLS.
+
+STARTTLS_STRIPPED:
+  severity: CRITICAL
+  title: STARTTLS offered but not used
+  remediation: Enforce STARTTLS on the server and reject authentication attempts sent before the TLS upgrade.
+
+OBSOLETE_TLS:
+  severity: HIGH
+  title: Obsolete TLS version negotiated
+  remediation: Disable SSL 3.0, TLS 1.0 and TLS 1.1. Allow only TLS 1.2 and TLS 1.3.
+
+WEAK_CIPHER:
+  severity: HIGH
+  title: Weak cipher suite negotiated
+  remediation: Remove RC4, 3DES, DES, NULL and EXPORT ciphers. Prefer AEAD suites such as AES-GCM or ChaCha20-Poly1305.
+
+CERT_EXPIRED:
+  severity: HIGH
+  title: Certificate expired or not yet valid
+  remediation: Replace the certificate and set up automated renewal before expiry.
+
+CERT_SELF_SIGNED:
+  severity: MEDIUM
+  title: Self-signed certificate
+  remediation: Use a certificate issued by a trusted certificate authority so clients can verify the server identity.
+
+WEAK_KEY:
+  severity: MEDIUM
+  title: Weak public key
+  remediation: Use an RSA key of at least 2048 bits, or an elliptic-curve key.
+
+NO_FORWARD_SECRECY:
+  severity: MEDIUM
+  title: No forward secrecy
+  remediation: Prefer ECDHE or DHE key exchange so captured traffic cannot be decrypted later if the server key leaks.

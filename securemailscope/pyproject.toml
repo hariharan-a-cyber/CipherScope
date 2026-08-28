@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "securemailscope"
+version = "0.1.0"
+description = "Assess the TLS security posture of email traffic from packet captures"
+requires-python = ">=3.9"
+dependencies = [
+    "scapy>=2.5",
+    "cryptography>=41",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "jinja2>=3.1",
+    "pyyaml>=6.0",
+    "python-multipart>=0.0.9",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

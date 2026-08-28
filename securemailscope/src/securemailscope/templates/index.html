@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SecureMailScope</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="topbar">
+    <span class="name">SecureMailScope</span>
+    <span class="tag">Email TLS posture from packet captures</span>
+  </div>
+
+  <div class="container">
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+    <div class="panel">
+      <h2>Analyse a capture</h2>
+      <p class="hint">Upload a PCAP that contains SMTP, IMAP or POP3 traffic. The tool reads the TLS handshake and reports the cryptographic posture. It never reads message contents.</p>
+      <form class="upload" action="/scan" method="post" enctype="multipart/form-data">
+        <input type="file" name="pcap" accept=".pcap,.pcapng" required>
+        <button class="btn" type="submit">Scan</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Sample captures</h2>
+      <p class="hint">Bundled examples covering secure sessions, weak TLS, plaintext logins and a STARTTLS stripping case.</p>
+      <ul class="samples">
+        {% for s in samples %}
+        <li>
+          <span class="fname">{{ s }}</span>
+          <a class="btn secondary" href="/sample/{{ s }}">Scan</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
