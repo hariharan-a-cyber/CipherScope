@@ -7,6 +7,7 @@ bundle, so add it before importing.
 """
 import os
 import sys
+from urllib.parse import parse_qsl, urlencode
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "src")
@@ -20,20 +21,40 @@ from cypherscope.webapp import app as _app  # noqa: E402
 _PREFIX = "/api/index"
 
 
-async def app(scope, receive, send):
-    """Strip the Vercel function prefix so FastAPI sees the original path.
+def _restore_path(scope):
+    """Recover the URL the browser asked for.
 
-    The catch-all rewrite in vercel.json points every request at /api/index,
-    and that rewritten path is what reaches the ASGI app.
+    The catch-all rewrite in vercel.json sends every request to /api/index,
+    and only that rewritten path reaches the ASGI app -- so the real path is
+    smuggled through the __vpath query parameter, which rewrites do preserve.
     """
+    params = parse_qsl(scope.get("query_string", b"").decode(), keep_blank_values=True)
+    path = None
+    rest = []
+    for key, value in params:
+        if key == "__vpath":
+            path = value or "/"
+        else:
+            rest.append((key, value))
+
+    if path is None:
+        # No marker (local uvicorn, or Vercel forwarding the path directly).
+        current = scope.get("path", "")
+        if current == _PREFIX or current.startswith(_PREFIX + "/"):
+            path = current[len(_PREFIX):] or "/"
+        else:
+            return scope
+
+    scope = dict(scope)
+    scope["path"] = path
+    scope["raw_path"] = path.encode()
+    scope["query_string"] = urlencode(rest).encode()
+    return scope
+
+
+async def app(scope, receive, send):
     if scope["type"] in ("http", "websocket"):
-        path = scope.get("path", "")
-        if path == _PREFIX or path.startswith(_PREFIX + "/"):
-            scope = dict(scope)
-            scope["path"] = path[len(_PREFIX):] or "/"
-            raw = scope.get("raw_path")
-            if raw:
-                scope["raw_path"] = raw.replace(_PREFIX.encode(), b"", 1) or b"/"
+        scope = _restore_path(scope)
     await _app(scope, receive, send)
 
 
