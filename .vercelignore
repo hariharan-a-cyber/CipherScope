@@ -1,0 +1,11 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+tests/
+tools/
+*.egg-info/
+run_demo.sh
+run_demo.bat
+requirements-dev.txt

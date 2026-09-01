@@ -1,6 +1,6 @@
-# Check catalog for SecureMailScope.
+# Check catalog for CypherScope.
 # Each entry defines the severity and remediation text for a finding code.
-# The detection logic lives in src/securemailscope/rules.py; this file lets you
+# The detection logic lives in src/cypherscope/rules.py; this file lets you
 # tune severity and wording without touching code.
 
 NO_ENCRYPTION:

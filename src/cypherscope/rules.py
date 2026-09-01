@@ -16,8 +16,7 @@ _WEAK_CIPHER_TOKENS = ("RC4", "3DES", "_DES_", "NULL", "EXPORT", "MD5")
 
 @lru_cache(maxsize=1)
 def _catalog():
-    path = os.path.join(os.path.dirname(__file__), "..", "..", "rules.yaml")
-    path = os.path.normpath(path)
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rules.yaml")
     with open(path, "r", encoding="utf-8") as fh:
         return yaml.safe_load(fh)
 

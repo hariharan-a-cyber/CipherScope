@@ -6,3 +6,9 @@ venv/
 .pytest_cache/
 report.json
 out.json
+build/
+dist/
+.vscode/
+.idea/
+.DS_Store
+.vercel/

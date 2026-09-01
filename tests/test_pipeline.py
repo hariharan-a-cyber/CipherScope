@@ -5,7 +5,7 @@ Run from the project root with:  PYTHONPATH=src pytest
 import os
 import pytest
 
-from securemailscope.analyze import analyze_pcap
+from cypherscope.analyze import analyze_pcap
 
 DATA = os.path.join(os.path.dirname(__file__), "..", "data")
 

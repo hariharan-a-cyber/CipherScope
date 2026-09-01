@@ -1,9 +1,9 @@
 """
 Command line entry point.
 
-    python -m securemailscope scan data/*.pcap
-    python -m securemailscope scan data/03_pop3_plaintext.pcap --json out.json
-    python -m securemailscope serve
+    python -m cypherscope scan data/*.pcap
+    python -m cypherscope scan data/03_pop3_plaintext.pcap --json out.json
+    python -m cypherscope serve
 """
 import argparse
 import json
@@ -35,12 +35,12 @@ def cmd_scan(args):
 
 def cmd_serve(args):
     import uvicorn
-    uvicorn.run("securemailscope.webapp:app", host=args.host, port=args.port, reload=False)
+    uvicorn.run("cypherscope.webapp:app", host=args.host, port=args.port, reload=False)
     return 0
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(prog="securemailscope",
+    parser = argparse.ArgumentParser(prog="cypherscope",
                                      description="Assess the TLS security posture of email traffic in a PCAP.")
     sub = parser.add_subparsers(dest="command", required=True)
 

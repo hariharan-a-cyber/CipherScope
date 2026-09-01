@@ -1,5 +1,5 @@
 """
-Generate the sample packet captures used for the SecureMailScope demo.
+Generate the sample packet captures used for the CypherScope demo.
 
 This builds real X.509 certificates and standards-shaped TLS handshake records,
 then frames them in TCP/IP and writes them to data/*.pcap. It lets the team own
