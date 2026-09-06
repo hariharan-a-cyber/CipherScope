@@ -5,7 +5,7 @@ the TLS encryption was. It looks at SMTP, IMAP and POP3 sessions, parses the TLS
 handshake, checks the server certificate, and grades each session from SECURE to
 CRITICAL with the reason and a fix.
 
-Live demo: https://cypherscope.vercel.app
+Live demo: https://cipher-scope-prototype.vercel.app
 
 Built for Smart India Hackathon 2026, problem statement SIH26159 (NTRO).
 
