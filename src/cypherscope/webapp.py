@@ -8,7 +8,7 @@ import os
 import tempfile
 
 from fastapi import FastAPI, Request, UploadFile, File
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -67,6 +67,13 @@ def scan_sample(request: Request, name: str):
         return templates.TemplateResponse(request, "index.html", {"samples": _samples(), "error": f"sample not found: {safe}"})
     report = build_report(safe, analyze_pcap(path))
     return templates.TemplateResponse(request, "report.html", {"report": report})
+
+
+@app.get("/scan")
+def scan_get():
+    # Reached by refreshing after an upload, Back/Forward, or typing the URL.
+    # There is nothing to show for a GET, so go back to the upload page.
+    return RedirectResponse("/", status_code=303)
 
 
 @app.post("/scan", response_class=HTMLResponse)

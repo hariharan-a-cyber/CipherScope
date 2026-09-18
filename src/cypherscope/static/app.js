@@ -90,7 +90,9 @@
     document.close();
   }
 
-  function scan(fetchPromise, fallbackUrl) {
+  // fallback: what to do if the fetch itself fails (network error). Must
+  // re-issue the same request natively; a GET of the upload URL would 405.
+  function scan(fetchPromise, fallback) {
     buildOverlay().classList.add("on");
     Promise.all([fetchPromise, runStages()])
       .then(function (results) {
@@ -100,8 +102,7 @@
         swapDocument(html);
       })
       .catch(function () {
-        // network error talking to the local server: fall back to a plain load
-        window.location.href = fallbackUrl;
+        fallback();
       });
   }
 
@@ -116,7 +117,7 @@
         e.preventDefault();
         scan(
           fetch(form.action, { method: "POST", body: new FormData(form) }),
-          form.action
+          function () { HTMLFormElement.prototype.submit.call(form); }
         );
       });
     }
@@ -125,7 +126,7 @@
     Array.prototype.forEach.call(links, function (a) {
       a.addEventListener("click", function (e) {
         e.preventDefault();
-        scan(fetch(a.href), a.href);
+        scan(fetch(a.href), function () { window.location.href = a.href; });
       });
     });
   });
