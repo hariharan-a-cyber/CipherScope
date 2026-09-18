@@ -34,6 +34,7 @@
       '<div class="scan-spinner"></div>' +
       '<div class="scan-title">Scanning capture</div>' +
       '<div class="scan-stage" id="scan-stage">Starting…</div>' +
+      '<div class="scan-detail" id="scan-detail"></div>' +
       '<div class="scan-bar"><div class="scan-bar-fill" id="scan-bar-fill"></div></div>' +
       '<div class="scan-steps" id="scan-steps"></div>' +
       "</div>";
@@ -101,7 +102,8 @@
       .then(function (html) {
         swapDocument(html);
       })
-      .catch(function () {
+      .catch(function (err) {
+        if (window.console) console.error("scan overlay failed, falling back:", err);
         fallback();
       });
   }
