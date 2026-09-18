@@ -16,7 +16,7 @@ what it can and cannot do:
 
 **It does**
 
-- read `.pcap` and `.pcapng` files offline, no Wireshark or root needed
+- read `.pcap` and `.pcapng` files offline, IPv4 and IPv6, no Wireshark or root needed
 - find SMTP, IMAP and POP3 sessions on their standard ports, and on any other
   port when the session opens with a recognisable cleartext greeting
 - tell plaintext, STARTTLS-upgraded, STARTTLS-stripped and implicit-TLS sessions apart
@@ -33,8 +33,8 @@ what it can and cannot do:
 - inspect certificates in TLS 1.3 sessions, where the certificate is sent
   encrypted; version, cipher and forward secrecy are still graded
 - identify implicit-TLS servers on non-standard ports (no cleartext banner to read)
-- handle IPv6, or captures that are large, truncated or damaged; it has only
-  been exercised on small, well formed captures
+- handle captures that are large, truncated or damaged; it has only been
+  exercised on small, well formed captures
 - on the hosted demo, accept uploads over 4 MB or scans over 60 seconds
 
 Do not treat its output as an audit result. Treat it as a first look that points
@@ -171,11 +171,14 @@ result of each.
 | `04_smtp_starttls_secure.pcap` | SMTP on 587, STARTTLS upgraded to TLS 1.2 | SECURE |
 | `05_smtp_starttls_stripped.pcap` | SMTP on 587, STARTTLS offered but login sent in cleartext | CRITICAL |
 | `06_smtp_nonstandard_port.pcap` | SMTP on 2525, found by its banner, login in cleartext | CRITICAL |
+| `07_real_gmail_outlook.pcapng` | Real Wireshark capture over IPv6: Gmail and Outlook IMAPS, Outlook SMTP STARTTLS, all TLS 1.3 | 3 x SECURE |
 
-These captures are synthetic. `tools/generate_pcaps.py` builds real X.509
+Captures 01 to 06 are synthetic. `tools/generate_pcaps.py` builds real X.509
 certificates and standards-shaped TLS records and frames them in TCP/IP, but no
-real mail server was involved. They prove the pipeline; they do not prove it
-against real-world traffic. Regenerate them with:
+real mail server was involved. They prove the pipeline. Capture 07 is real
+traffic, recorded with Wireshark against Gmail and Outlook using
+`openssl s_client`; it contains handshakes only, no logins. Regenerate the
+synthetic ones with:
 
     python tools/generate_pcaps.py
 
@@ -225,9 +228,9 @@ its SMTP banner and grades it CRITICAL for running in the clear.
 
     python -m pytest
 
-Eight tests: one per bundled capture checking the expected verdict, one that
-non-mail traffic (HTTP) is ignored, and one that a TLS 1.3 ServerHello is parsed
-correctly.
+Nine tests: one per bundled capture checking the expected verdict (including
+the real Gmail/Outlook capture), one that non-mail traffic (HTTP) is ignored,
+and one that a TLS 1.3 ServerHello is parsed correctly.
 
 ## Deploying
 
@@ -277,10 +280,10 @@ the order in which it earns credibility with evaluators.
 
 ### Phase 1: prove it on real traffic (before the finals)
 
-1. **Real-world validation set.** Capture sessions against real servers
-   (Gmail, Outlook, Zoho, a self-hosted Postfix/Dovecot with deliberately weak
-   settings) and add them to `data/` with expected verdicts and tests. Every
-   claim in this README should be backed by a capture a judge can re-run.
+1. **Grow the real-world validation set.** Gmail and Outlook over TLS 1.3 are
+   in (`data/07`). Add Zoho, a TLS 1.2-only server, and a self-hosted
+   Postfix/Dovecot with deliberately weak settings so the HIGH and CRITICAL
+   paths are also proven on real traffic, not only on synthetic captures.
 2. **Certificate chain and hostname verification.** Validate the chain against
    the system trust store and match the certificate name against SNI. A
    trusted-looking certificate for the wrong host is the fingerprint of
@@ -289,7 +292,7 @@ the order in which it earns credibility with evaluators.
    list. A strong server talking to a client that still offers RC4 or TLS 1.0
    is a downgrade risk; today only the negotiated result is graded.
 4. **Robust parsing.** Out-of-order and retransmitted segments, TLS records
-   split across TCP segments, IPv6, truncated captures. Add a fuzz-style test
+   split across TCP segments, truncated captures. Add a fuzz-style test
    that feeds damaged captures and asserts the tool degrades to "unparseable"
    instead of crashing or, worse, reporting SECURE.
 

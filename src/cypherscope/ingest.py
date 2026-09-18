@@ -17,7 +17,7 @@ import re
 from typing import Dict, List, Optional, Tuple
 
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
-from scapy.all import rdpcap, IP, TCP, Raw
+from scapy.all import rdpcap, IP, IPv6, TCP, Raw
 
 from .models import EmailSession
 
@@ -76,9 +76,15 @@ def load_sessions(pcap_path: str) -> List[EmailSession]:
     # which side is the server is decided after the whole capture is read
     conns: Dict[frozenset, dict] = {}
     for pkt in packets:
-        if IP not in pkt or TCP not in pkt or Raw not in pkt:
+        if TCP not in pkt or Raw not in pkt:
             continue
-        ip, tcp = pkt[IP], pkt[TCP]
+        if IP in pkt:
+            ip = pkt[IP]
+        elif IPv6 in pkt:
+            ip = pkt[IPv6]
+        else:
+            continue
+        tcp = pkt[TCP]
         src, dst = (ip.src, int(tcp.sport)), (ip.dst, int(tcp.dport))
         key = frozenset({src, dst})
         conn = conns.setdefault(key, {"first_sender": src, "chunks": {src: [], dst: []}})

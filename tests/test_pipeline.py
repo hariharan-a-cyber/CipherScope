@@ -69,6 +69,23 @@ def test_nonstandard_port_detected_by_banner():
     assert "NO_ENCRYPTION" in codes(s)
 
 
+def test_real_capture_gmail_outlook_ipv6():
+    # Captured with Wireshark on 2026-09-18: openssl s_client to Gmail and
+    # Outlook over IPv6. Two IMAPS sessions and one SMTP STARTTLS session, all
+    # TLS 1.3. The certificate is encrypted in TLS 1.3, so cert is None.
+    sessions = analyze_pcap(os.path.join(DATA, "07_real_gmail_outlook.pcapng"))
+    assert len(sessions) == 3
+    assert {(s.protocol, s.server_port) for s in sessions} == {("IMAP", 993), ("SMTP", 587)}
+    assert all(":" in s.server_ip for s in sessions)          # IPv6 addresses
+    for s in sessions:
+        assert s.tls.version == "TLS 1.3"
+        assert s.tls.forward_secrecy and s.tls.aead
+        assert s.cert is None
+        assert s.severity == "SECURE", s.findings
+    smtp = next(s for s in sessions if s.protocol == "SMTP")
+    assert smtp.starttls_state == "STARTTLS_UPGRADED"
+
+
 def test_tls13_server_hello_parsed():
     # A TLS 1.3 ServerHello carries legacy_version 0x0303 and the real version in
     # the supported_versions extension as a bare 2-byte value. It must come out as

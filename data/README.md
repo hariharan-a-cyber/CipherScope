@@ -14,6 +14,12 @@ Each file and the verdict the tool should produce:
 | `04_smtp_starttls_secure.pcap` | SMTP on 587, STARTTLS upgrade to TLS 1.2 secure | SECURE |
 | `05_smtp_starttls_stripped.pcap` | SMTP on 587, STARTTLS offered but login sent in cleartext | CRITICAL |
 | `06_smtp_nonstandard_port.pcap` | SMTP on 2525 (non-standard port), identified from its banner, login in cleartext | CRITICAL |
+| `07_real_gmail_outlook.pcapng` | **Real capture.** Wireshark, IPv6, `openssl s_client` to Gmail IMAPS (993), Outlook IMAPS (993) and Outlook SMTP STARTTLS (587). TLS 1.3 throughout. | 3 x SECURE |
+
+`07_real_gmail_outlook.pcapng` is the only capture taken from live traffic. It
+contains handshakes only; no login was attempted, so it holds no credentials
+or mail content. Because the sessions are TLS 1.3, the certificate is sent
+encrypted and the certificate checks do not apply.
 
 To regenerate them:
 
