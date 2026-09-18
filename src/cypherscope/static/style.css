@@ -144,7 +144,7 @@ input[type=file] { font-size: 14px; }
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 26px 30px;
-  width: 320px;
+  width: 360px;
   max-width: calc(100vw - 40px);
   text-align: center;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
@@ -166,6 +166,13 @@ input[type=file] { font-size: 14px; }
   min-height: 18px;
   font-family: "Courier New", Consolas, monospace;
 }
+.scan-detail {
+  font-size: 11px;
+  color: var(--muted);
+  opacity: 0.8;
+  min-height: 15px;
+  margin-top: 2px;
+}
 .scan-bar {
   margin-top: 14px;
   height: 6px;
@@ -177,8 +184,21 @@ input[type=file] { font-size: 14px; }
   height: 100%;
   width: 0;
   background: var(--accent);
-  transition: width 0.3s ease;
+  transition: width 0.3s linear; /* duration is set per stage from app.js */
 }
+.scan-steps {
+  margin-top: 14px;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.7;
+  font-family: "Courier New", Consolas, monospace;
+}
+.scan-step { color: var(--muted); opacity: 0.55; }
+.scan-step::before { content: "\25CB  "; }                               /* circle: pending */
+.scan-step.active { opacity: 1; color: var(--ink); }
+.scan-step.active::before { content: "\25B8  "; color: var(--accent); } /* triangle: running */
+.scan-step.done { opacity: 0.85; }
+.scan-step.done::before { content: "\2713  "; color: var(--secure); }   /* check: done */
 @media (prefers-reduced-motion: reduce) {
   .scan-spinner { animation-duration: 2.4s; }
   .scan-bar-fill { transition: none; }

@@ -34,7 +34,7 @@
     <div class="session">
       <div class="row">
         <span class="badge {{ cls[s.severity] }}">{{ s.severity }}</span>
-        <span class="meta"><b>{{ s.protocol }}</b> {{ s.server }}</span>
+        <span class="meta"><b>{{ s.protocol }}</b> {{ s.server }}{% if s.detected_by == "banner" %} <span class="note" title="Non-standard port; protocol identified from the banner">(by banner)</span>{% endif %}</span>
         <span class="meta">{{ s.encryption_state }}</span>
         {% if s.tls %}<span class="meta mono">{{ s.tls.version }}</span>{% endif %}
       </div>

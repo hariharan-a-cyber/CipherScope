@@ -193,6 +193,21 @@ def main():
          ("c", b"U3VwM3JTZWNyZXQh\r\n")],
     ))
 
+    # 6. SMTP on a non-standard port (2525), no STARTTLS offered, login in cleartext -> CRITICAL
+    #    Exercises banner-based protocol detection: nothing about port 2525 says "mail".
+    write("06_smtp_nonstandard_port.pcap", build_session(
+        "10.0.0.10", "10.0.0.70", 51006, 2525,
+        [("s", b"220 relay.example.local ESMTP Postfix\r\n"),
+         ("c", b"EHLO client\r\n"),
+         ("s", b"250-relay.example.local\r\n250 AUTH LOGIN PLAIN\r\n"),
+         ("c", b"AUTH LOGIN\r\n"),
+         ("s", b"334 VXNlcm5hbWU6\r\n"),
+         ("c", b"aW52ZXN0aWdhdG9y\r\n"),
+         ("s", b"334 UGFzc3dvcmQ6\r\n"),
+         ("c", b"U3VwM3JTZWNyZXQh\r\n"),
+         ("s", b"235 Authentication successful\r\n")],
+    ))
+
 
 if __name__ == "__main__":
     main()

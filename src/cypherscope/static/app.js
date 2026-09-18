@@ -9,15 +9,17 @@
 (function () {
   "use strict";
 
+  // Each stage gets its own duration so the bar moves at an uneven, realistic
+  // pace instead of ticking like a metronome. Total is ~6s.
   var STAGES = [
-    "Reading packet capture…",
-    "Reassembling TCP streams…",
-    "Detecting STARTTLS upgrades…",
-    "Parsing TLS handshake…",
-    "Validating server certificates…",
-    "Applying rule engine…",
+    { label: "Reading packet capture…",         detail: "opening file and indexing frames",              ms: 700 },
+    { label: "Reassembling TCP streams…",       detail: "grouping packets into sessions by 4-tuple",     ms: 1100 },
+    { label: "Detecting STARTTLS upgrades…",    detail: "inspecting SMTP, IMAP and POP3 command streams", ms: 900 },
+    { label: "Parsing TLS handshake…",          detail: "ClientHello / ServerHello, version and cipher", ms: 1300 },
+    { label: "Validating server certificates…", detail: "expiry, key size, signature, self-signed check", ms: 1200 },
+    { label: "Applying rule engine…",           detail: "scoring each session against rules.yaml",       ms: 600 },
+    { label: "Building report…",                detail: "collecting findings and remediation steps",     ms: 400 },
   ];
-  var STAGE_MS = 340; // time each stage is shown -> ~2s minimum
 
   function buildOverlay() {
     var el = document.getElementById("scan-overlay");
@@ -33,26 +35,51 @@
       '<div class="scan-title">Scanning capture</div>' +
       '<div class="scan-stage" id="scan-stage">Starting…</div>' +
       '<div class="scan-bar"><div class="scan-bar-fill" id="scan-bar-fill"></div></div>' +
+      '<div class="scan-steps" id="scan-steps"></div>' +
       "</div>";
     document.body.appendChild(el);
     return el;
   }
 
   // Walk the stage messages; resolves once every stage has been shown.
+  // The bar fills continuously within a stage (via CSS transition) so it is
+  // always moving, and a checklist below ticks off completed stages.
   function runStages() {
     var stageEl = document.getElementById("scan-stage");
+    var detailEl = document.getElementById("scan-detail");
     var fill = document.getElementById("scan-bar-fill");
+    var stepsEl = document.getElementById("scan-steps");
+    var total = STAGES.reduce(function (n, st) { return n + st.ms; }, 0);
+    var elapsed = 0;
     var i = 0;
+
+    stepsEl.innerHTML = "";
+    STAGES.forEach(function (st) {
+      var li = document.createElement("div");
+      li.className = "scan-step";
+      li.textContent = st.label.replace(/…$/, "");
+      stepsEl.appendChild(li);
+    });
+    var stepEls = stepsEl.children;
+
     return new Promise(function (resolve) {
       (function tick() {
+        if (i > 0) stepEls[i - 1].className = "scan-step done";
         if (i >= STAGES.length) {
+          stageEl.textContent = "Scan complete";
+          detailEl.textContent = "";
           resolve();
           return;
         }
-        stageEl.textContent = STAGES[i];
-        fill.style.width = Math.round(((i + 1) / STAGES.length) * 100) + "%";
+        var st = STAGES[i];
+        stepEls[i].className = "scan-step active";
+        stageEl.textContent = st.label;
+        detailEl.textContent = st.detail;
+        elapsed += st.ms;
+        fill.style.transitionDuration = st.ms + "ms";
+        fill.style.width = Math.round((elapsed / total) * 100) + "%";
         i += 1;
-        setTimeout(tick, STAGE_MS);
+        setTimeout(tick, st.ms);
       })();
     });
   }

@@ -84,7 +84,7 @@ async def scan_upload(request: Request, pcap: UploadFile = File(...)):
     try:
         report = build_report(pcap.filename or "upload.pcap", analyze_pcap(tmp_path))
     except Exception as exc:
-        return templates.TemplateResponse(request, "index.html", {"samples": _samples(), "error": f"could not analyse this file: {exc}"})
+        return templates.TemplateResponse(request, "index.html", {"samples": _samples(), "error": f"could not scan this file: {exc}"})
     finally:
         try:
             os.unlink(tmp_path)

@@ -46,6 +46,7 @@ class EmailSession:
     server_port: int
     client_ip: str
     implicit_tls: bool
+    detected_by: str = "port"     # "port" (well-known port) or "banner" (greeting on any port)
     client_bytes: bytes = b""
     server_bytes: bytes = b""
     starttls_state: str = "UNKNOWN"

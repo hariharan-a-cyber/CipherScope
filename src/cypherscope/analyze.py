@@ -1,4 +1,4 @@
-"""Run the full pipeline over a PCAP and return analysed sessions."""
+"""Run the full pipeline over a PCAP and return scanned sessions."""
 from typing import List
 
 from .ingest import load_sessions

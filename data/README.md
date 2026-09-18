@@ -13,6 +13,7 @@ Each file and the verdict the tool should produce:
 | `03_pop3_plaintext.pcap` | POP3 on 110, no TLS, USER/PASS in the clear | CRITICAL |
 | `04_smtp_starttls_secure.pcap` | SMTP on 587, STARTTLS upgrade to TLS 1.2 secure | SECURE |
 | `05_smtp_starttls_stripped.pcap` | SMTP on 587, STARTTLS offered but login sent in cleartext | CRITICAL |
+| `06_smtp_nonstandard_port.pcap` | SMTP on 2525 (non-standard port), identified from its banner, login in cleartext | CRITICAL |
 
 To regenerate them:
 

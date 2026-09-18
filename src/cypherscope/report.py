@@ -1,4 +1,4 @@
-"""Build report structures and a plain terminal table from analysed sessions."""
+"""Build report structures and a plain terminal table from scanned sessions."""
 from typing import List, Dict
 
 from .models import EmailSession, SEVERITY_ORDER
@@ -10,6 +10,7 @@ def session_to_dict(s: EmailSession) -> dict:
     return {
         "stream_id": s.stream_id,
         "protocol": s.protocol,
+        "detected_by": s.detected_by,
         "server": f"{s.server_ip}:{s.server_port}",
         "client": s.client_ip,
         "encryption_state": s.starttls_state,
@@ -66,6 +67,8 @@ def terminal_table(report: dict) -> str:
         proto_port = sess["server"].split(":")[-1]
         lines.append(f"{sess['severity']:<9} {sess['protocol']:<5} {proto_port:<5} "
                      f"{sess['encryption_state']:<18} {tls_txt}")
+        if sess.get("detected_by") == "banner":
+            lines.append(f"    (non-standard port; protocol identified from the {sess['protocol']} banner)")
         for f in sess["findings"]:
             lines.append(f"    [{f['severity']}] {f['title']}: {f['detail']}")
     lines.append("-" * 78)

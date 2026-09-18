@@ -16,7 +16,7 @@
     {% if error %}<div class="error">{{ error }}</div>{% endif %}
 
     <div class="panel">
-      <h2>Analyse a capture</h2>
+      <h2>Scan a capture</h2>
       <p class="hint">Upload a PCAP that contains SMTP, IMAP or POP3 traffic. The tool reads the TLS handshake and reports the cryptographic posture. It never reads message contents.</p>
       <form class="upload" action="/scan" method="post" enctype="multipart/form-data">
         <input type="file" name="pcap" accept=".pcap,.pcapng" required>
