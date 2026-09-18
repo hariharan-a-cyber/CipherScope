@@ -51,7 +51,7 @@ templates = Jinja2Templates(directory=os.path.join(PKG_DIR, "templates"))
 def _samples():
     if not DATA_DIR or not os.path.isdir(DATA_DIR):
         return []
-    return sorted(f for f in os.listdir(DATA_DIR) if f.endswith(".pcap"))
+    return sorted(f for f in os.listdir(DATA_DIR) if f.endswith((".pcap", ".pcapng")))
 
 
 @app.get("/", response_class=HTMLResponse)
