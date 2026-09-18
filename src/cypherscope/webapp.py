@@ -86,5 +86,10 @@ async def scan_upload(request: Request, pcap: UploadFile = File(...)):
     except Exception as exc:
         return templates.TemplateResponse(request, "index.html", {"samples": _samples(), "error": f"could not analyse this file: {exc}"})
     finally:
-        os.unlink(tmp_path)
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            # On Windows scapy can leave a failed parse's file handle open
+            # until GC runs; a leftover temp file is harmless, a 500 is not.
+            pass
     return templates.TemplateResponse(request, "report.html", {"report": report})
