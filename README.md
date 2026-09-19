@@ -274,59 +274,63 @@ you need full-size captures, run it locally or on a normal server.
 
 The problem statement (SIH26159, NTRO) asks for a tool that assesses the
 cryptographic security posture of email traffic from packet captures. The
-prototype covers the core of that. The plan below is ordered by what moves the
-tool from "demo" to "something an analyst would actually run", which is also
-the order in which it earns credibility with evaluators.
+prototype is a single-file, offline, first-look grader: one PCAP in, one
+severity per session out. The product is a system an analyst runs continuously
+against real traffic and trusts. The table below is the gap, area by area.
 
-### Phase 1: prove it on real traffic (before the finals)
+### Prototype vs. product
 
-1. **Grow the real-world validation set.** Gmail and Outlook over TLS 1.3 are
-   in (`data/07`). Add Zoho, a TLS 1.2-only server, and a self-hosted
-   Postfix/Dovecot with deliberately weak settings so the HIGH and CRITICAL
-   paths are also proven on real traffic, not only on synthetic captures.
-2. **Certificate chain and hostname verification.** Validate the chain against
-   the system trust store and match the certificate name against SNI. A
-   trusted-looking certificate for the wrong host is the fingerprint of
-   interception, and it is the check NTRO's analysts will ask about first.
-3. **Client-side weakness.** Parse the ClientHello's offered versions and cipher
-   list. A strong server talking to a client that still offers RC4 or TLS 1.0
-   is a downgrade risk; today only the negotiated result is graded.
-4. **Robust parsing.** Out-of-order and retransmitted segments, TLS records
-   split across TCP segments, truncated captures. Add a fuzz-style test
-   that feeds damaged captures and asserts the tool degrades to "unparseable"
-   instead of crashing or, worse, reporting SECURE.
+| Area | Prototype (today) | Product |
+|---|---|---|
+| Input | One uploaded `.pcap`/`.pcapng`, small and well formed | Live capture from an interface or SPAN port, multi-GB files, streaming ingest, batch folders, graceful handling of truncated or damaged captures |
+| Protocol coverage | SMTP, IMAP, POP3 on standard ports, or any port with a cleartext banner | Implicit TLS on non-standard ports via handshake fingerprinting, Exchange/MAPI over HTTPS, webmail, submission variants |
+| TLS analysis | Negotiated version and cipher, forward-secrecy and AEAD flags | Full ClientHello analysis (offered versions and ciphers, downgrade risk), extensions (SNI, ALPN, renegotiation, session tickets), TLS 1.3 groups and key shares, JA3/JA3S fingerprints, known-vulnerable configurations |
+| Certificates | Expiry, key size, self-signed; only when the certificate is sent in the clear (TLS 1.2 and below) | Chain validation against a trust store, hostname match against SNI, revocation (OCSP/CRL), Certificate Transparency presence, weak signature algorithms, key reuse across hosts, interception signatures |
+| Findings | Severity, title and detail from a static `rules.yaml` | Scored posture model per host and domain over time, configurable policy profiles, CVE mapping, confidence levels |
+| Output | HTML page, JSON, terminal table | Persistent database, dashboards with trends, per-host and per-domain drill-down, PDF/CSV exports, alerting to SIEM/syslog/webhook, REST API |
+| Scale | Everything in memory, one process | Worker pool or stream processor, indexed storage, de-duplication across captures, millions of flows |
+| Trust | Explicitly "not an audit result" | Validated against a corpus of real traffic, fuzz-tested parsers, fails closed to "unparseable" and never to a false SECURE |
+| Operations | `run_demo.bat`, no auth, no users | Packaged deployment (Docker or appliance), RBAC, audit logging, air-gapped install, signed releases |
+| Correlation | Each session judged on its own | Sessions rolled up into server posture; changes over time (downgrades, new certificates, new interception); cross-checked with DNS, MTA-STS and DANE records |
 
-### Phase 2: make it usable at scale (finals to deployment)
+### The three gaps that matter most
 
-5. **Large captures.** Stream packets instead of loading the file into memory,
-   report progress from the real pipeline, and profile against a multi-GB
-   capture. Target: an hour of mail traffic from a mid-size organisation on a
-   laptop.
-6. **Organisation-wide view.** Group findings by server, not just by session:
-   "mail.example.gov.in negotiated TLS 1.0 in 340 of 400 sessions". That is the
-   report an administrator acts on.
-7. **Export and integration.** PDF/HTML report for hand-off, JSON already
-   exists, `--fail-on SEVERITY` exit codes for CI, and a schema so the output
-   can be fed to a SIEM.
-8. **Live capture.** `tcpdump -w - | cypherscope scan -` and a capture-interface
-   mode, once the offline path is proven on real data.
+1. **Identity is not verified.** A valid certificate for the wrong host, talking
+   to a client that asked for `imap.gmail.com`, grades SECURE today. Chain and
+   hostname verification is the check that turns a cipher checker into an
+   interception detector.
+2. **Only the server's answer is graded, not the client's offer.** A client that
+   still offers TLS 1.0 and RC4 is a downgrade risk even when the server picks
+   TLS 1.3. The product parses both sides of the handshake.
+3. **Nothing is remembered between scans.** Posture assessment is "how has this
+   server behaved across thousands of sessions over months, and what changed".
+   That needs storage, correlation and trend views.
 
-### Phase 3: beyond mail
+### Phases
 
-9. **Broader protocol coverage.** The TLS and certificate stages are protocol
-   agnostic. Adding HTTPS, LDAPS, FTPS and XMPP is mostly a matter of session
-   identification, which the banner detector already abstracts.
-10. **Policy packs.** The rule set is a YAML file. Ship profiles aligned to
-    published baselines (for example CERT-In and NIST SP 800-52r2 TLS
-    guidance) so a scan can answer "does this comply with X" rather than only
-    "is this weak".
+**Phase 1: prove it on real traffic**
 
-### What we will not do
+1. Grow the real-world validation set: Zoho, a TLS 1.2-only server, a
+   self-hosted Postfix/Dovecot with deliberately weak settings, so the HIGH and
+   CRITICAL paths are proven on real captures and not only on synthetic ones.
+2. Certificate chain and hostname verification against the system trust store
+   and the SNI.
+3. ClientHello parsing: offered versions, cipher list, extensions.
+4. Robust parsing: out-of-order and retransmitted segments, TLS records split
+   across TCP segments, truncated captures. A fuzz-style test feeds damaged
+   captures and asserts the tool degrades to "unparseable" rather than
+   crashing or reporting SECURE.
 
-- No machine learning for the grading. TLS weaknesses are defined by
-  standards, and a rule that cites the standard is more useful to an analyst
-  than a score without a reason. ML may earn a place later for anomaly
-  detection across many servers, but not before the deterministic checks are
-  complete and validated.
-- No decryption of message content. The tool grades the handshake only, and
-  that boundary is what makes it safe to run on captures containing real mail.
+**Phase 2: make it usable at scale**
+
+5. Streaming ingest and live capture from an interface.
+6. Persistent storage keyed by server, with de-duplication across captures.
+7. Dashboards with per-host history and change detection.
+8. Handshake fingerprinting to find implicit-TLS servers on any port.
+
+**Phase 3: make it deployable**
+
+9. Policy profiles and a scored posture model replacing the flat rule catalog.
+10. Exports (PDF/CSV), REST API, and alerting into SIEM/syslog/webhook.
+11. Packaged deployment, RBAC, audit logging, air-gapped install.
+12. Cross-checks against DNS, MTA-STS and DANE for the domains observed.
