@@ -3,7 +3,7 @@
 CypherScope reads a packet capture of email traffic and reports how strong or weak
 the TLS encryption was. It finds SMTP, IMAP and POP3 sessions, parses the TLS
 handshake, checks the server certificate, and grades each session from SECURE to
-CRITICAL with the reason and a fix.
+CRITICAL with the reason.
 
 Live demo: https://cipher-scope-prototype.vercel.app
 
@@ -22,7 +22,7 @@ what it can and cannot do:
 - tell plaintext, STARTTLS-upgraded, STARTTLS-stripped and implicit-TLS sessions apart
 - read the negotiated TLS version (SSL 3.0 through TLS 1.3) and cipher suite
 - parse the server certificate and check expiry, key size and self-signing
-- grade each session and explain what to fix
+- grade each session and explain why
 - run as a web dashboard or from the command line, with JSON output
 
 **It does not (yet)**
@@ -100,7 +100,7 @@ From the project folder:
 
 Then open http://127.0.0.1:8000. Upload a capture, or click Scan on one of the
 bundled samples. You get a summary of severities and a per-session breakdown with
-the problem and the fix.
+the problem.
 
 If the scripts do not run, start it directly:
 
@@ -129,7 +129,7 @@ Scan one capture:
 
 The stages tick off one by one, then the report prints: a summary count per
 severity and a row per session with protocol, port, encryption state, TLS
-version and cipher, followed by each finding and its fix.
+version and cipher, followed by each finding.
 
 Scan several at once, or your own file:
 
@@ -264,7 +264,7 @@ you need full-size captures, run it locally or on a normal server.
         handshake.py                TLS handshake parser
         certs.py                    certificate parsing and checks
         rules.py                    rule engine
-        rules.yaml                  severity and remediation text
+        rules.yaml                  severity and title per finding
         report.py                   report building and terminal output
         webapp.py                   FastAPI dashboard
         __main__.py                 scan and serve commands

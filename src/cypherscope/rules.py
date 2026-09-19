@@ -28,7 +28,6 @@ def _make(code: str, detail: str) -> Finding:
         severity=meta["severity"],
         title=meta["title"],
         detail=detail,
-        remediation=meta["remediation"],
     )
 
 
