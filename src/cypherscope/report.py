@@ -33,7 +33,7 @@ def session_to_dict(s: EmailSession) -> dict:
         },
         "findings": [
             {"code": f.code, "severity": f.severity, "title": f.title,
-             "detail": f.detail}
+             "detail": f.detail, "remediation": f.remediation}
             for f in s.findings
         ],
     }

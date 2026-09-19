@@ -57,6 +57,7 @@
           <div class="finding {{ cls[f.severity] }}">
             <div class="ftitle">[{{ f.severity }}] {{ f.title }}</div>
             <div class="fdetail">{{ f.detail }}</div>
+            <div class="ffix"><b>Fix:</b> {{ f.remediation }}</div>
           </div>
           {% endfor %}
         {% else %}

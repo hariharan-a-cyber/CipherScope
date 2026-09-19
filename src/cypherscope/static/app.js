@@ -18,7 +18,7 @@
     { label: "Parsing TLS handshake…",          detail: "ClientHello / ServerHello, version and cipher", ms: 1300 },
     { label: "Validating server certificates…", detail: "expiry, key size, signature, self-signed check", ms: 1200 },
     { label: "Applying rule engine…",           detail: "scoring each session against rules.yaml",       ms: 600 },
-    { label: "Building report…",                detail: "collecting findings",                       ms: 400 },
+    { label: "Building report…",                detail: "collecting findings and remediation steps",     ms: 400 },
   ];
 
   function buildOverlay() {

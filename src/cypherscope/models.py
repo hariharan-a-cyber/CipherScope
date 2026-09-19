@@ -12,6 +12,7 @@ class Finding:
     severity: str
     title: str
     detail: str
+    remediation: str
 
 
 @dataclass
